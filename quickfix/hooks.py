@@ -1,8 +1,8 @@
 app_name = "quickfix"
-app_title = "quickfix"
+app_title = "Quickfix app"
 app_publisher = "Namitha"
-app_description = "A new app"
-app_email = "namithachinnasamy@gmail.com"
+app_description = "Electronics repair app"
+app_email = "namitha2062005@gmail.com"
 app_license = "mit"
 
 # Apps
@@ -15,7 +15,7 @@ app_license = "mit"
 # 	{
 # 		"name": "quickfix",
 # 		"logo": "/assets/quickfix/logo.png",
-# 		"title": "quickfix",
+# 		"title": "Quickfix app",
 # 		"route": "/quickfix",
 # 		"has_permission": "quickfix.api.permission.has_app_permission"
 # 	}
