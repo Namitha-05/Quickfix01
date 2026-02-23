@@ -1,6 +1,6 @@
-### quickfix
+### Quickfix app
 
-A new app
+Electronics repair app
 
 ### Installation
 

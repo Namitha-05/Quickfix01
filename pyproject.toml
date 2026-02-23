@@ -1,9 +1,9 @@
 [project]
 name = "quickfix"
 authors = [
-    { name = "Namitha", email = "namithachinnasamy@gmail.com"}
+    { name = "Namitha", email = "namitha2062005@gmail.com"}
 ]
-description = "A new app"
+description = "Electronics repair app"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
