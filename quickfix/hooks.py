@@ -250,7 +250,6 @@ app_license = "mit"
 fixtures = ["Device Type"]
 
 
-    
 
 
 fixtures = [
