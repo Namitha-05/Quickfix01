@@ -50,8 +50,8 @@ This document explains how I set up two sites on the same bench and configured t
 
 I created two sites on my bench:
 
- `quickfix-dev.localhost` - for development  
- `quickfix-prod.localhost` - for production  
+ quickfix-dev.localhost - for development  
+ quickfix-prod.localhost - for production  
 Both sites have the Quickfix app installed.
 
 
@@ -63,7 +63,7 @@ I did not enable developer mode on the production site because it would show err
 
 ## 3. Shared Configuration
 
-In `common_site_config.json`, I added:
+In the common_site_config.json, I added:
 "db_host": "localhost"
 
 
@@ -71,3 +71,5 @@ In `common_site_config.json`, I added:
 2. Putting secrets in common_site_config.json is risky because all sites share it and it could be accidentally checked into git.  
 3. Developer mode on dev site allows auto-reloading of Python files and disables asset caching. Never enable on production.  
 4. bench start launches 4 processes: web (handles HTTP requests), worker (processes background jobs), scheduler (runs scheduled tasks), socketio (real-time communication). If the worker crashes, background jobs are not processed until the worker is restarted. 
+
+

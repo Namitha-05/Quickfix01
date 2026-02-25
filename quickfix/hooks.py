@@ -248,4 +248,19 @@ app_license = "mit"
 # ignore_translatable_strings_from = []
 
 fixtures = ["Device Type"]
+
+
     
+
+
+fixtures = [
+    {
+        "doctype": "Role",
+        "filters": [
+            ["name", "in", ["QF Service Staff", "QF Technician", "QF Manager"]]
+        ]
+    },
+    {
+        "doctype": "Custom DocPerm"
+    }
+]

@@ -13,7 +13,8 @@
   "labour_charge",
   "parts_total",
   "total_amount",
-  "payment_status"
+  "payment_status",
+  "amended_from"
  ],
  "fields": [
   {
@@ -67,12 +68,23 @@
    "fieldtype": "Select",
    "label": "Invoice number",
    "options": "INV-.YYYY.-.#####"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Service Invoice",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2026-02-24 23:22:48.624502",
+ "modified": "2026-02-25 15:28:40.741593",
  "modified_by": "Administrator",
  "module": "Service center",
  "name": "Service Invoice",
