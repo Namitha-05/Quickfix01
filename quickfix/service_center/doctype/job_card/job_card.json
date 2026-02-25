@@ -110,19 +110,19 @@
    "options": "Technician"
   },
   {
-   "depends_on": "eval:doc.assigned_technician)",
+   "depends_on": "doc.assigned_technician;",
    "fieldname": "diagnosis_notes",
    "fieldtype": "Text Editor",
    "label": "Diagnosis notes"
   },
   {
-   "depends_on": "eval:doc.diagnosis_notes",
+   "depends_on": "doc.diagnosis_notes;",
    "fieldname": "estimated_cost",
    "fieldtype": "Currency",
    "label": "Estimated cost"
   },
   {
-   "depends_on": "eval:doc.diagnosis_notes",
+   "depends_on": "doc.diagnosis_notes;",
    "fieldname": "diagnosis_date",
    "fieldtype": "Date",
    "label": "Diagnosis date"
@@ -200,7 +200,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-24 22:08:30.950704",
+ "modified": "2026-02-25 10:10:34.189625",
  "modified_by": "Administrator",
  "module": "Service center",
  "name": "Job Card",

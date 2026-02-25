@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class ServiceInvoiceDoctype(Document):
+class ServiceInvoice(Document):
 	pass

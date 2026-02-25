@@ -6,12 +6,10 @@ class SparePart(Document):
 
     def autoname(self):
         if self.part_code:
-        self.name = self.part_code.upper()+"-"+make_autoname("PART-.YYYY.-.####")
-
+            self.name = self.part_code.upper() + "-" + make_autoname("PART-.YYYY.-.####")
 
     def validate(self):
         self.validate_pricing()
-
 
     def validate_pricing(self):
         if self.unit_cost is not None and self.selling_price is not None:
