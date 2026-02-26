@@ -86,3 +86,44 @@ In track changes, the name changes was displayed as Administrator renamed from T
 2. unique field - strong rule enforced by the database.
 frappe.db.exists() in validate - Custom check written in code.
 
+
+
+# D1 -Roles and Permission matrix
+
+->If a non-manager calls  the frappe.only_for("QF Manager") means Permission error is occuring.
+
+-> frappe.permissions.get_doc_permissions(doc)
+For set_user() as manager@gmail.com for job card,
+
+{'if_owner': {},
+ 'has_if_owner_enabled': False,
+ 'select': 1,
+ 'read': 1,
+ 'write': 1,
+ 'create': 1,
+ 'delete': 1,
+ 'submit': 1,
+ 'cancel': 1,
+ 'amend': 1,
+ 'print': 1,
+ 'email': 1,
+ 'report': 1,
+ 'import': 0,
+ 'export': 1,
+ 'share': 1}
+
+
+ # D2: Permission Query and has_permission:
+
+ ->frappe.get_all() bypasses permission_query_conditions and record-level permissions.
+ ->If exposed to guests or low-privilege users, it can return all records and leak sensitive data.
+
+ ->Always use frappe.get_list() in APIs because it respects user  permissions and prevents data leaks.
+
+
+ # E1 Job card lifecycle
+
+ on_update() ->   recursion pitfall
+
+ If self.save() is called inside on_update(), it creates infinite recursion because saving the document triggers validate() and on_update() again. This leads to repeated save cycles, eventually causing a maximum recursion depth error and potential server crash.
+Therefore, lifecycle methods should not manually call save().
