@@ -127,3 +127,9 @@ For set_user() as manager@gmail.com for job card,
 
  If self.save() is called inside on_update(), it creates infinite recursion because saving the document triggers validate() and on_update() again. This leads to repeated save cycles, eventually causing a maximum recursion depth error and potential server crash.
 Therefore, lifecycle methods should not manually call save().
+
+
+# E3- Part-B Upgrade friction analysis:
+doc_events is safer than override_doctype_class because it adds custom logic on top of the existing DocType without replacing it. This ensures core validations and future updates always run.
+
+override_doctype_class can break things if forget to call super().
