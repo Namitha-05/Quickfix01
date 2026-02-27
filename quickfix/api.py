@@ -23,3 +23,26 @@ def share_job_card(job_card_name, user_email):
 def manager_only_action():
     frappe.only_for("QF Manager")
     return "This is only if manager role is there.It is present"
+
+
+@frappe.whitelist()
+def get_job_cards_unsafe():
+    return frappe.get_all("Job Card")
+
+
+@frappe.whitelist()
+def get_job_cards_safe():
+    user = frappe.session.user
+    roles = frappe.get_roles(user)
+
+    job_cards = frappe.get_list(
+        "Job Card",
+        fields=["name", "customer_name", "customer_phone", "customer_email", "status"]
+    )
+
+    if "QF Manager" not in roles:
+        for jc in job_cards:
+            jc.pop("customer_phone", None)
+            jc.pop("customer_email", None)
+
+    return job_cards

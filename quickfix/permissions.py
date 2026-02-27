@@ -1,56 +1,34 @@
-# Copyright (c) 2026, Namitha and contributors
-# For license information, please see license.txt
-
-# import frappe
-# from frappe.model.document import Document
-
-
 import frappe
-from frappe.model.document import Document
 
-class JobCard(Document):
-   
-    def before_insert(self):
-        default_labor = frappe.db.get_single_value( "QuickFix Settings", "default_labour_charge")
-        if not self.labour_charge:
-            self.labour_charge = default_labor
-        
-    
-     def validate(self):
+def jobcard_permission_query_conditions(user):
+    roles = frappe.get_roles(user)
 
-    if not re.fullmatch(r"\d{10}", self.customer_phone or ""):
-        frappe.throw(
-            "Customer Phone must contain exactly 10 numeric digits (0-9).",
-            title="Invalid Phone Number"
+    # if "QF Manager" in roles:
+    #     return ""
+
+    return f"""
+        `tabJob Card`.assigned_technician IN (
+            SELECT name FROM `tabTechnician`
+            WHERE user = {frappe.db.escape(user)}
         )
+    """
 
-    if self.status in ["In Repair", "Ready for Delivery", "Completed"]:
-        if not self.assigned_technician:
-            frappe.throw(
-                f"Assigned Technician is required when status is '{self.status}'.",
-                title="Technician Missing"
-            )
+def service_invoice_has_permission(doc, user):
+    if "QF Manager" in frappe.get_roles(user):
+        return True
 
-    parts_total = 0
-
-    for row in self.parts_used:
-        qty = row.quantity or 0
-        rate = row.unit_price or 0
-        row.total_price = qty * rate
-        parts_total += row.total_price
-
-    self.parts_total = parts_total
-
-    if self.labour_charge is None:
-        self.labour_charge = frappe.db.get_single_value(
-            "QuickFix Settings",
-            "default_labour_charge"
-        ) or 0
-
-    self.final_amount = self.parts_total + (self.labour_charge or 0)
+    payment_status = frappe.db.get_value(
+        "Job Card",
+        doc.job_card,
+        "payment_status"
+    )
+    if payment_status != "Paid":
+        return False
+    return True
 
 
 def before_submit(self):
+
     if self.status != "Ready for Delivery":
         frappe.throw(
             "Job Card can only be submitted when status is 'Ready for Delivery'.",
@@ -81,10 +59,9 @@ def before_submit(self):
                 f"Available: {available_stock}, Required: {required_qty}.",
                 title="Stock Not Available"
             )
-
+        
 
 def on_submit(self):
-
     for row in self.parts_used:
         available_stock = frappe.db.get_value(
             "Spare Part",
@@ -93,7 +70,6 @@ def on_submit(self):
         ) or 0
 
         new_stock = available_stock - (row.quantity or 0)
-
         frappe.db.set_value(
             "Spare Part",
             row.part,
@@ -125,39 +101,28 @@ def on_submit(self):
         user=self.owner
     )
 
-
-1
     frappe.enqueue(
-        "quickfix.quickfix.doctype.job_card.job_card.send_job_ready_email",
+        "quickfix.quickfix.doctype.job_card.send_job_ready_email",
         job_card=self.name
     )
 
+    def on_cancel(self):
 
+    self.status = "Cancelled"
 
-   def on_cancel(self):
+    # Restore stock
+    for row in self.parts_used:
+        current_stock = frappe.db.get_value("Spare Part", row.part, "stock_qty") or 0
 
-    self.db_set("status", "Cancelled")
+        frappe.db.set_value(
+            "Spare Part",
+            row.part,
+            "stock_qty",
+            current_stock + row.quantity,
+            update_modified=False
+        )
 
-    if self.parts_used:
-        for row in self.parts_used:
-
-            current_stock = frappe.db.get_value(
-                "Spare Part",
-                row.part,
-                "stock_qty"
-            ) or 0
-
-            restored_stock = current_stock + (row.quantity or 0)
-
-            frappe.db.set_value(
-                "Spare Part",
-                row.part,
-                "stock_qty",
-                restored_stock,
-                update_modified=False,
-                ignore_permissions=True
-            )
-
+    # Cancel Service Invoice
     invoice_name = frappe.db.get_value(
         "Service Invoice",
         {"job_card": self.name},
@@ -166,13 +131,18 @@ def on_submit(self):
 
     if invoice_name:
         invoice = frappe.get_doc("Service Invoice", invoice_name)
-        if invoice.docstatus == 1:
-            invoice.cancel() 
+        invoice.cancel()
 
-    
-    def on_trash(self):
+
+
+def on_trash(self):
+
     if self.status not in ["Draft", "Cancelled"]:
         frappe.throw(
-            "Only Draft or Cancelled Job Cards can be deleted.",
-            title="Deletion Not Allowed"
+            "Only Draft or Cancelled Job Cards can be deleted."
         )
+
+def on_update(self):
+
+    if self.status == "Completed" and not self.completed_on:
+        self.db_set("completed_on", frappe.utils.now())
