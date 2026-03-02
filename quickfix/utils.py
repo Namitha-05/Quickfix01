@@ -1,6 +1,10 @@
 import frappe
 
+# This can be dangerous because:
+@frappe.whitelist(allow_guest=True)
 def rename_technician(old_name, new_name):
+    # frappe.log_error(old_name)
+    frappe.set_user("Administrator")
     frappe.rename_doc(
         "Technician",
         old_name,
@@ -21,9 +25,7 @@ def rename_technician(old_name, new_name):
 
 
 def send_urgent_alert(job_card, manager):
-
     subject = f"Urgent Job Card {job_card} Needs Technician"
-
     message = f"""
     <h3>Urgent Job Card Alert</h3>
 
@@ -32,7 +34,6 @@ def send_urgent_alert(job_card, manager):
 
     <p>Please assign a technician immediately.</p>
     """
-
     frappe.sendmail(
         recipients=[manager],
         subject=subject,

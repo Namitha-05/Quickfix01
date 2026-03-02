@@ -19,3 +19,25 @@ class SparePart(Document):
                     .format(self.selling_price, self.unit_cost),
                     title=("Invalid Pricing")
                 )
+
+    def on_update(self):
+            threshold = frappe.db.get_value(
+                "QuickFix Settings", None, "low_stock_threshold"
+            )
+            if self.stock_qty < (threshold or 0):
+                frappe.msgprint(f"Warning: Stock for {self.part_name} is below threshold ({threshold})")
+
+
+# QuickFix Settings is a Single DocType (issingle = 1), so its values are
+# stored in the tabSingles table.
+
+# In controller methods like on_update, frappe.db.get_value should be used
+# instead of frappe.get_doc because get_doc loads the entire document
+# object including all fields and metadata, which is slower.
+
+# frappe.db.get_value directly fetches only the required field from the
+# database, making it more efficient for frequently executed controller
+# methods.
+
+# Passing None as the name parameter indicates that the value should be
+# fetched from a Single DocType.

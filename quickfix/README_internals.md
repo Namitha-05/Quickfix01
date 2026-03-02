@@ -84,7 +84,7 @@ This happened because assigned_technician is a Link field and in Frappe, Link fi
 In track changes, the name changes was displayed as Administrator renamed from TECH-00001 to TECH-00002 .
 
 2. unique field - strong rule enforced by the database.
-frappe.db.exists() in validate - Custom check written in code.
+frappe.db.exists() in validate - Custom check written in code.Less strict than Unique field.
 
 
 
@@ -133,3 +133,33 @@ Therefore, lifecycle methods should not manually call save().
 doc_events is safer than override_doctype_class because it adds custom logic on top of the existing DocType without replacing it. This ensures core validations and future updates always run.
 
 override_doctype_class can break things if forget to call super().
+
+
+
+# F1 - doc_events: Wildcard, Multiple Handlers, Order
+
+Handler order in Frappe:
+When both controller and doc_events define same method like validate method,
+the execution order is:
+
+1. Controller validate method runs first
+2. doc_events handler runs next
+
+If the controller raises frappe.ValidationError,
+execution stops immediately and then the doc_events handler will not run.
+
+If both controller and doc_events raise ValidationError,
+only the first error is shown because Frappe stops at the first exception itself.
+
+Wildcard vs specific DocType handler:
+
+If both "*" and a specific DocType handler are registered
+for the same event, both handlers will run.
+
+Execution order is:
+1. Controller method
+2. Specific DocType handler
+3. Wildcard handler
+
+->Wildcard runs for all DocTypes, so it is executed after
+the specific handler.
