@@ -8,7 +8,8 @@
   "shop_name",
   "manager_email",
   "default_labour_charge",
-  "low_stock_alert_enabled"
+  "low_stock_alert_enabled",
+  "low_stock_alert_threshold"
  ],
  "fields": [
   {
@@ -34,13 +35,18 @@
    "fieldname": "default_labour_charge",
    "fieldtype": "Currency",
    "label": "Default labour charge"
+  },
+  {
+   "fieldname": "low_stock_alert_threshold",
+   "fieldtype": "Int",
+   "label": "Low Stock Alert Threshold"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-02-25 11:27:16.968816",
+ "modified": "2026-03-02 15:20:45.499147",
  "modified_by": "Administrator",
  "module": "Service center",
  "name": "QuickFix Settings",

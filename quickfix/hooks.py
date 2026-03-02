@@ -5,6 +5,20 @@ app_description = "Electronics repair app"
 app_email = "namitha2062005@gmail.com"
 app_license = "mit"
 
+
+
+
+after_install = "quickfix.install.after_install"
+before_uninstall = "quickfix.install.before_uninstall"
+
+extend_bootinfo = "quickfix.boot.extend_bootinfo"
+
+on_session_creation = "quickfix.session.on_session_creation"
+on_logout = "quickfix.session.on_logout"
+
+app_include_js = "/assets/quickfix/js/quickfix.js"
+
+
 # Apps
 # ------------------
 
@@ -249,9 +263,6 @@ app_license = "mit"
 
 fixtures = ["Device Type"]
 
-
-
-
 fixtures = [
     {
         "doctype": "Role",
@@ -265,15 +276,30 @@ fixtures = [
 ]
 
 
+
 permission_query_conditions = {
     "Job Card": "quickfix.permissions.jobcard_permission_query_conditions"
 }
-
 has_permission = {
     "Service Invoice": "quickfix.permissions.service_invoice_has_permission"
 }
 
 
+
 override_doctype_class = {
     "Job Card": "quickfix.overrides.custom_job_card.CustomJobCard"
+}
+
+
+
+doc_events = {
+    "*": {
+        "on_update": "quickfix.audit.log_change",
+        "on_submit": "quickfix.audit.log_change",
+        "on_cancel": "quickfix.audit.log_change",
+    },
+
+    "Job Card": {
+        "validate": "quickfix.events.job_card_validate"
+    }
 }
