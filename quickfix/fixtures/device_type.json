@@ -1,12 +1,12 @@
 [
  {
-  "average_repair_hours": 2,
-  "description": "Mobile phone devices like Android or iPhone",
-  "device_type": "Smartphone",
+  "average_repair_hours": 3,
+  "description": "Tablet devices like iPad, Samsung Tab etc",
+  "device_type": "Tablet",
   "docstatus": 0,
   "doctype": "Device Type",
-  "modified": "2026-02-24 13:47:41.990226",
-  "name": "Smartphone"
+  "modified": "2026-02-24 13:48:28.628450",
+  "name": "Tablet"
  },
  {
   "average_repair_hours": 4,
@@ -16,14 +16,5 @@
   "doctype": "Device Type",
   "modified": "2026-02-24 13:48:05.388364",
   "name": "Laptop"
- },
- {
-  "average_repair_hours": 3,
-  "description": "Tablet devices like iPad, Samsung Tab etc",
-  "device_type": "Tablet",
-  "docstatus": 0,
-  "doctype": "Device Type",
-  "modified": "2026-02-24 13:48:28.628450",
-  "name": "Tablet"
  }
 ]
