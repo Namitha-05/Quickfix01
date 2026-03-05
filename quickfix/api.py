@@ -1,4 +1,6 @@
 import frappe
+from frappe.client import get_count
+from frappe.utils import now_datetime
 
 @frappe.whitelist()
 def share_job_card(job_card_name, user_email):
@@ -46,3 +48,55 @@ def get_job_cards_safe():
             jc.pop("customer_email", None)
 
     return job_cards
+
+
+
+@frappe.whitelist()
+def custom_get_count(doctype, filters=None, debug=False, cache=False):
+    frappe.get_doc({
+        "doctype": "Audit Log",
+        "doctype_name": doctype,
+        "action": "count_queried",
+        "user": frappe.session.user,
+        "timestamp":now_datetime(),
+    }).insert(ignore_permissions=True)
+
+    frappe.db.commit() 
+    # frappe.msgprint("Custom override running")
+
+
+    return get_count(doctype, filters, debug, cache)  
+
+
+@frappe.whitelist()
+def mark_delivered(job_card):
+    doc = frappe.get_doc("Job Card", job_card)
+    doc.status = "Delivered"
+    doc.save()
+    frappe.db.commit()
+    return "Delivered"
+
+@frappe.whitelist()
+def reject_job(job_card, reason):
+    doc = frappe.get_doc("Job Card", job_card)
+    doc.status = "Cancelled"
+    doc.rejection_reason = reason
+    doc.save()
+    frappe.db.commit()
+    return "Cancelled"
+    
+@frappe.whitelist()
+def transfer_technician(job_card, new_technician):
+    doc = frappe.get_doc("Job Card", job_card)
+    doc.assigned_technician = new_technician
+    doc.save()
+    frappe.db.commit()
+    return "Transferred"
+
+@frappe.whitelist()
+def mark_ready_for_delivery(job_card):
+    doc = frappe.get_doc("Job Card", job_card)
+    doc.status = "Ready for Delivery"
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
+    return "success"

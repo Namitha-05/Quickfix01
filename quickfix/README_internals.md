@@ -163,3 +163,114 @@ Execution order is:
 
 ->Wildcard runs for all DocTypes, so it is executed after
 the specific handler.
+
+
+# F3 – Asset, Jinja & Website Hooks
+# Asset Hooks
+
+-->app_include_js vs web_include_js
+
+->app_include_js loads JavaScript only in the Desk UI for logged-in users.
+It is used when we want scripts to run inside forms, list views, or any page inside.
+
+->web_include_js loads JavaScript only in Website pages.
+It is used for public pages, guest users, or custom website routes.
+
+Use app_include_js for desk features.
+Use web_include_js for website features.
+
+-->doctype_js for Job Card
+doctype_js loads a JavaScript file only when a specific DocType form is opened.
+
+-->doctype_list_js for Job Card
+doctype_list_js loads JavaScript only in the list view of a DocType.
+
+-->doctype_tree_js (not applicable)
+doctype_tree_js is used for DocTypes that have hierarchical structure.
+Tree view is used when records have parent-child relationship.Job Card does not have hierarchy, so tree view is not used.
+
+
+-->Build cache-busting
+-->Command:
+ bench build --app quickfix
+This command rebuilds frontend assets.
+
+Frappe bundles files from public/js into /assets/quickfix/.
+
+Browsers cache old JavaScript files.
+After changing JS, the old file may still load.
+
+Running bench build clears cache and loads the new file.
+This is called cache-busting.
+
+# Jinja hooks:
+
+Difference Between Jinja Context in Print Formats and Web Pages
+
+No, they are not same.
+
+Print Format Jinja Context:
+Automatically provides the current document as doc. It is directly tied to a specific DocType record and is mainly used for generating printable documents (PDF/HTML).
+
+Web Page Jinja Context:
+Does not automatically provide doc. Data must be passed manually using get_context(). It is used for public or portal web pages and is not restricted to a single document.
+
+
+
+# F4 - override_whitelisted_methods Hook:
+
+-->Difference Between override_whitelisted_methods and Monkey Patching:
+
+override_whitelisted_methods is a Frappe hook defined in hooks.py that explicitly replaces a whitelisted method with a custom implementation. It is framework-supported, reversible, maintainable, and upgrade-safe.
+
+Monkey patching directly reassigns a function at import time in Python. It is invisible, brittle, hard to debug, and not recommended for production.
+
+Using override_whitelisted_methods for production-safe API overrides. Use monkey patching only for temporary debugging or testing.
+
+
+-->What Happens If Two Apps Override the Same Method:
+
+If two apps register override_whitelisted_methods for the same method, the app that is loaded last (based on sites/apps.txt) takes precedence. The earlier override is silently replaced. No warning is shown. Only one override will be active.
+
+-->Signature Mismatch and TypeError:
+
+When overriding a method, the custom function must match the original function's signature exactly.
+
+If the number or names of parameters differs, the Python raises a TypeError when the method is called because the framework passes arguments based on the original signature.
+
+Therefore, the override function must accept the same parameters as the original method to avoid runtime errors.
+
+
+# F5 - Fixtures & Property Setters in Install 
+
+->what happens if your Custom Field has the same
+fieldname as a field added by a future Frappe update?
+
+If a Custom Field uses the same fieldname as a field introduced later by a Frappe update, it creates a fieldname collision.
+
+This can cause:
+Migration failures
+Database schema conflicts
+Unexpected behavior in forms
+App updates breaking
+
+Frappe cannot have two fields with the same fieldname in the same DocType.
+Therefore, always use unique, app-specific prefixes (e.g., qf_custom_status) to avoid future conflicts.
+
+->Patch 1 creates a Custom Field and Patch 2 reads it, why
+must they be separate entries in patches.txt and never merged?
+
+Patches run one by one in the order they are written in patches.txt.If Patch 1 creates a Custom Field and Patch 2 tries to use that field, Patch 1 must run first.That is why, they should be written as separate entries.
+If merged together, the second logic might run before the field is properly created, which can cause errors.Keeping patches separate ensures everything runs safely and in the correct order.
+
+
+
+# H1 - Job Card Form Script
+->Making a frappe.call inside the validate client event (before_save handler):
+
+frappe.call is asynchronous, so the save process may continue before the server response is received. Because of this, the validation may not wait for the result and may cause unexpected behavior. Hence, using frappe.call in validate is not reliable.
+
+->Using onload or refresh for async data fetches :
+
+onload and refresh run when the form is loaded or refreshed, not during saving.
+So we can safely use frappe.call to fetch data from the server asynchronously and update fields or UI without affecting the save process.

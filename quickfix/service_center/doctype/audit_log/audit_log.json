@@ -6,10 +6,10 @@
  "engine": "InnoDB",
  "field_order": [
   "doctype_name",
-  "data_dsxq",
-  "data_uwyj",
+  "document_name",
+  "action",
   "user",
-  "datetime_rqru"
+  "timestamp"
  ],
  "fields": [
   {
@@ -18,12 +18,12 @@
    "label": "Doctype Name"
   },
   {
-   "fieldname": "data_dsxq",
+   "fieldname": "document_name",
    "fieldtype": "Data",
    "label": "Document Name"
   },
   {
-   "fieldname": "data_uwyj",
+   "fieldname": "action",
    "fieldtype": "Data",
    "label": "Action"
   },
@@ -34,7 +34,7 @@
    "options": "User"
   },
   {
-   "fieldname": "datetime_rqru",
+   "fieldname": "timestamp",
    "fieldtype": "Datetime",
    "label": "Timestamp"
   }
@@ -42,7 +42,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-01 21:51:14.760202",
+ "modified": "2026-03-04 10:40:22.365513",
  "modified_by": "Administrator",
  "module": "Service center",
  "name": "Audit Log",
@@ -57,6 +57,18 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
    "share": 1,
    "write": 1
   }
