@@ -18,8 +18,8 @@ class JobCard(Document):
 
 
     def validate(self):
-        if not self.customer_phone:
-            frappe.throw("Controller: phone required")
+        if not self.device_model:
+            frappe.msgprint("Controller: device model required")
 
         if not re.fullmatch(r"\d{10}", self.customer_phone or ""):
             frappe.throw(
@@ -97,9 +97,10 @@ class JobCard(Document):
             )
         invoice = frappe.get_doc({
             "doctype": "Service Invoice",
-            "customer": self.customer_name,
+            "customer_name": self.customer_name,
             "job_card": self.name,
-            "amount": self.final_amount
+            "total_amount": self.final_amount,
+            "labour_charge":self.labour_charge,
         })
         invoice.insert(ignore_permissions=True)
 
@@ -156,3 +157,28 @@ class JobCard(Document):
     def on_update(self):
         if self.status == "Completed" and not self.completed_on:
             self.db_set("completed_on", frappe.utils.now())
+
+
+@frappe.whitelist()
+def mark_as_delivered(job_card: str):
+    doc = frappe.get_doc("Job Card", job_card)
+    doc.check_permission("write")
+
+    if doc.docstatus != 1:
+        frappe.throw("Only submitted Job Cards can be marked as Delivered.")
+
+    if doc.status == "Delivered":
+        return
+
+    if doc.status != "Ready for Delivery":
+        frappe.throw("Only Job Cards in 'Ready for Delivery' can be marked as Delivered.")
+
+    frappe.db.set_value(
+        "Job Card",
+        doc.name,
+        {
+            "status": "Delivered",
+            "delivery_date": frappe.utils.nowdate(),
+        },
+        update_modified=True,
+    )

@@ -1,0 +1,1 @@
+console.log("Website JS is loaded");

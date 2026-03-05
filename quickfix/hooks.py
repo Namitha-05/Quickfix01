@@ -16,7 +16,8 @@ extend_bootinfo = "quickfix.boot.extend_bootinfo"
 on_session_creation = "quickfix.session.on_session_creation"
 on_logout = "quickfix.session.on_logout"
 
-app_include_js = "/assets/quickfix/js/quickfix.js"
+app_include_js = "quickfix.bundle.js"
+
 
 
 # Apps
@@ -261,7 +262,7 @@ app_include_js = "/assets/quickfix/js/quickfix.js"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
-fixtures = ["Device Type"]
+# fixtures = ["Device Type"]
 
 fixtures = [
     {
@@ -302,4 +303,71 @@ doc_events = {
     "Job Card": {
         "validate": "quickfix.events.job_card_validate"
     }
+}
+
+
+
+
+#Asset Hooks
+#app_include_js = "quickfix.bundle.js"
+# web_include_js = "/assets/quickfix/js/web.js"
+# doctype_js = {
+#     "Job Card": "public/js/job_card.js"
+# }
+
+# doctype_list_js = {
+#     "Job Card": "public/js/job_card_list.js"
+# }
+
+
+
+#JINJA HOOK REGISTRATION
+jinja = {
+    # Register custom Jinja method (callable like {{ get_shop_name() }})
+    "methods": [
+        "quickfix.utils.get_shop_name"
+    ],
+
+    # Register custom Jinja filter (usable like {{ value | format_job_id }})
+    "filters": [
+        "quickfix.utils.format_job_id"
+    ]
+}
+
+# WEBSITE ROUTE REGISTRATION
+website_route_rules = [
+    {"from_route": "/track-job", "to_route": "track-job-portal"}
+]
+
+portal_menu_items = [
+    {
+        "label": "Track My Job",
+        "route": "/track-job",
+        "role": "Guest"
+    }
+]
+
+
+
+override_whitelisted_methods = {
+    "frappe.client.get_count": "quickfix.api.custom_get_count"
+}
+
+fixtures = [
+    "Custom Field",
+    "Property Setter",
+    "Role",
+    "Workspace",
+    {
+        "doctype": "Device Type",
+        "filters": [
+            ["name", "in", ["Mobile", "Laptop", "Tablet"]]
+        ]
+    },
+    "QuickFix Settings"
+]
+
+
+doctype_list_js = {
+    "Job Card": "job_card_list.js"
 }

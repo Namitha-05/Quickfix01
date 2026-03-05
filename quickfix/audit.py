@@ -1,12 +1,10 @@
 import frappe
 from frappe.utils import now_datetime
 
-
 def log_change(doc, method):
     """
     Logs every change for any DocType
     """
-
     # ✅ stop during migrate / install / patch
     if frappe.flags.in_migrate or frappe.flags.in_install:
         return
@@ -16,22 +14,21 @@ def log_change(doc, method):
         return
 
 
-    try:
-        frappe.get_doc({
-            "doctype": "Audit Log",
-            "doctype_name": doc.doctype,
-            "document_name": doc.name,
-            "action": method.replace("on_", "").capitalize(),
-            "user": frappe.session.user,
-            "timestamp": now_datetime()
-        }).insert(ignore_permissions=True)
+    # try:
+    doc = frappe.get_doc({
+        "doctype": "Audit Log",
+        "doctype_name": doc.doctype,
+        "document_name": doc.name,
+        "action": method.replace("on_", "").capitalize(),
+        "user": frappe.session.user,
+        "timestamp": now_datetime()
+    })
 
-    except Exception:
-        pass
+    
+    doc.insert(ignore_permissions=True)
 
 
 def log_event(doctype_name, document_name, action):
-
     if frappe.flags.in_migrate or frappe.flags.in_install:
         return
 

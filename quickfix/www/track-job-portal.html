@@ -1,0 +1,44 @@
+<!-- ------------------------------------------------ -->
+<!-- This prints shop name using Jinja METHOD -->
+<!-- It calls Python function get_shop_name() -->
+<!-- ------------------------------------------------ -->
+<h2>Welcome to {{ get_shop_name() }}</h2>
+
+<h3>Track Your Job</h3>
+
+<!-- ------------------------------------------------ -->
+<!-- Simple form to enter Job ID -->
+<!-- When submitted, it reloads page with ?job_id=value -->
+<!-- ------------------------------------------------ -->
+<form method="GET">
+    <input type="text" name="job_id" placeholder="Enter Job ID">
+    <button type="submit">Check Status</button>
+</form>
+
+<hr>
+
+<!-- ------------------------------------------------ -->
+<!-- If job exists in context (sent from Python) -->
+<!-- then display job details -->
+<!-- ------------------------------------------------ -->
+{% if job %}
+
+    <h4>Job Details</h4>
+
+    <!-- Apply Jinja FILTER here -->
+    <!-- It sends job.name into format_job_id() -->
+    <p>Job ID: {{ job.name | format_job_id }}</p>
+
+    <!-- Directly accessing fields from job document -->
+    <p>Customer: {{ job.customer_name }}</p>
+    <p>Status: {{ job.status }}</p>
+
+{% endif %}
+
+<!-- ------------------------------------------------ -->
+<!-- If there is an error (invalid job id) -->
+<!-- display error message -->
+<!-- ------------------------------------------------ -->
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}

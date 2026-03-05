@@ -21,9 +21,6 @@ def rename_technician(old_name, new_name):
 # - It cannot be easily undone
 
 
-
-
-
 def send_urgent_alert(job_card, manager):
     subject = f"Urgent Job Card {job_card} Needs Technician"
     message = f"""
@@ -41,3 +38,15 @@ def send_urgent_alert(job_card, manager):
     )
     
 
+#jinja method:
+
+def get_shop_name():
+    return frappe.db.get_single_value(
+        "Quickfix Settings",   
+        "shop_name"            
+    )
+
+#Jinja Filter:
+
+def format_job_id(value):
+    return f"JOB#{value}"
