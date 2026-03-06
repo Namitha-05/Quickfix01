@@ -302,3 +302,76 @@ What are the risks of Client Script DocType in production?
 
 Client Scripts are not version controlled, so changes are hard to track. They may also be lost during migrations or site restores, and too many scripts can make the system hard to maintain and debug.
 Therefore, important logic should be implemented in app-level JS instead of Client Scripts.
+
+Why Hiding with JS is Not Secure?
+
+Hiding fields with JavaScript only affects the user interface. The data still exists on the server, so it can be accessed through APIs or other requests.
+Therefore, real security should be implemented using proper role permissions or server-side access control, not just by hiding fields in the UI.
+
+# I1 Query Report with SQL Safety :
+
+ f-string SQL vs Parameterized Query
+
+# Problem with f-string SQL
+
+f-string directly puts user input into the SQL query.
+A malicious user can pass SQL code as input
+and manipulate the query.
+
+Unsafe example:
+    device_type = "' OR '1'='1"
+    query = f"SELECT * FROM `tabJob Card` 
+              WHERE device_type = '{device_type}'"
+
+The query becomes:
+    WHERE device_type = '' OR '1'='1'
+
+Since 1=1 is always true, this returns ALL records.
+This is a SQL injection attack.
+
+# Solution - Parameterized Query
+
+    query = """SELECT * FROM `tabJob Card`
+               WHERE device_type = %(device_type)s"""
+
+    frappe.db.sql(query, {"device_type": device_type})
+
+%(device_type)s is a placeholder.
+Frappe escapes the value before inserting it.
+Malicious input is treated as plain text - not SQL code.
+Attack is blocked.
+
+# Rule
+Never use f-strings or string concatenation in SQL queries.
+Always use %(fieldname)s placeholders with a values dict.
+
+
+# EXPLAIN Statement
+
+EXPLAIN shows how MySQL executes a query.
+It tells you if MySQL is using an index or scanning every single row.
+
+Before adding index:
+    key: None  -> no index -> full table scan
+    type: ALL  -> reading every row -> slow on large tables
+
+After adding search_index: 1 to status field in DocType JSON
+and running bench migrate:
+    key: status -> index used → fast
+    type: range -> only reading relevant rows
+
+# Why Index Matters
+
+Without index:
+    100 Job Cards  -> reads 100 rows to find matches
+    10000 Job Cards -> reads 10000 rows → very slow
+
+With index:
+    100 Job Cards  -> reads only matching rows
+    10000 Job Cards -> still fast → index jumps to matches
+
+# search_index: 1
+
+Adding search_index: 1 to a field in DocType JSON
+tells Frappe to create a MySQL index on that column.
+Run bench migrate after adding it to create the index.
