@@ -7,7 +7,6 @@ from frappe.model.document import Document
 
 
 class JobCard(Document):
-
     def before_insert(self):
         default_labor = frappe.db.get_single_value(
             "QuickFix Settings",
