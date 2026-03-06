@@ -1,7 +1,5 @@
 frappe.ui.form.on("Job Card", {
-
     setup: function(frm) {
-
         frm.set_query("assigned_technician", function() {
             return {
                 filters: {
@@ -104,7 +102,13 @@ frappe.ui.form.on("Job Card", {
             }, "Actions");  
         }
 
-        // Transfer Technician
+
+
+        // // Transfer Technician
+        //  if (!frappe.user.has_role("QF Manager")) {
+        //     frm.set_df_property("customer_phone", "hidden", 1);
+        // }
+
 
         if (frm.doc.docstatus === 0) {
             frm.add_custom_button("Transfer Technician", function() {
@@ -150,7 +154,15 @@ frappe.ui.form.on("Job Card", {
             }, "Actions");
         }
     },
+    
+    refresh: function(frm) {
+    // SAME customization as Client Script above
+    // but this time shipped as part of the app file
+    if (!frappe.user.has_role("QF Manager")) {
+        frm.set_df_property("customer_phone", "hidden", 1);
+    }
 
+},
     assigned_technician: function(frm) {
         if (!frm.doc.assigned_technician) return;
         frappe.call({
@@ -190,3 +202,4 @@ frappe.ui.form.on("Part Usage Entry", {
         }
     }
 });
+

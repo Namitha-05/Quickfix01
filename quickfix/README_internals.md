@@ -274,3 +274,31 @@ frappe.call is asynchronous, so the save process may continue before the server 
 
 onload and refresh run when the form is loaded or refreshed, not during saving.
 So we can safely use frappe.call to fetch data from the server asynchronously and update fields or UI without affecting the save process.
+
+
+# H3 Tree View
+
+what a Tree DocType?
+ A Tree DocType is just records arranged in a parent → child structure. Like folders inside folders. Real examples: Account (Assets → Bank Account).
+
+
+What is doctype_tree_js for?
+It's the JavaScript file that customises the Tree View page — you use it to add custom buttons, handle node clicks, or control what shows in the tree. Without it, the tree still works; it's only needed for extra behaviour.
+
+The 2 required extra fields:
+
+parent_field -> a Link field pointing to the same DocType. Stores "who is my parent?" If empty, that record is the root.
+is_group -> a Yes/No checkbox. If Yes, the node is a folder (can have children). If No, it's a leaf (no children allowed, actual working record).
+
+
+
+# H4  Client Script DocType vs Shipped JS:
+when would a consultant use Client Script DocType vs an app developer use shipped JS? 
+Client Script DocType is mainly used by consultants for quick UI customizations directly from the system without changing the app code. It is easy to create and modify from the interface.
+
+Shipped JS is used by app developers. The JavaScript is stored inside the app, tracked in Git, and deployed with the application, making it easier to maintain and manage.
+
+What are the risks of Client Script DocType in production?
+
+Client Scripts are not version controlled, so changes are hard to track. They may also be lost during migrations or site restores, and too many scripts can make the system hard to maintain and debug.
+Therefore, important logic should be implemented in app-level JS instead of Client Scripts.
