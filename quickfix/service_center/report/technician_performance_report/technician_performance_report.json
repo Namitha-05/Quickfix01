@@ -1,0 +1,12 @@
+{
+    "add_total_row": 0,
+    "columns": [],
+    "disabled": 0,
+    "doctype": "Report",
+    "filters": [],
+    "is_standard": "Yes",
+    "name": "Technician Performance Report",
+    "ref_doctype": "Job Card",
+    "report_name": "Technician Performance Report",
+    "report_type": "Script Report"
+}
