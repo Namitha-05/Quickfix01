@@ -29,3 +29,12 @@ def check_low_stock():
     frappe.db.commit()
 
     print("Job completed")
+
+
+
+
+def failing_job():
+    print("Starting failing job")
+
+    # Force an error
+    raise Exception("Intentional failure for testing background job handling")
