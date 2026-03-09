@@ -1,4 +1,7 @@
 import frappe
+import qrcode
+import io
+import base64
 
 # This can be dangerous because:
 @frappe.whitelist(allow_guest=True)
@@ -50,3 +53,19 @@ def get_shop_name():
 
 def format_job_id(value):
     return f"JOB#{value}"
+
+
+
+
+def get_job_card_qr(name):
+
+    url = frappe.utils.get_url(f"/app/job-card/{name}")
+
+    qr = qrcode.make(url)
+
+    buffer = io.BytesIO()
+    qr.save(buffer, format="PNG")
+
+    img_str = base64.b64encode(buffer.getvalue()).decode()
+
+    return f"data:image/png;base64,{img_str}"

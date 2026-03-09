@@ -100,3 +100,45 @@ def mark_ready_for_delivery(job_card):
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     return "success"
+
+
+    
+@frappe.whitelist()
+def get_status_chart_data():
+    
+    result = frappe.db.sql("""
+        SELECT
+            status,
+            COUNT(name) as count
+        FROM `tabJob Card`
+        WHERE
+            status IS NOT NULL
+            AND status != ''
+        GROUP BY status
+        ORDER BY count DESC
+    """, as_dict=True)
+
+    labels = [r.status for r in result]
+    values = [r.count  for r in result]
+
+    return {
+        "labels": labels,
+        "datasets": [
+            {
+                "name"  : "Job Count",
+                "values": values
+            }
+        ]
+    }
+
+
+
+@frappe.whitelist()
+def send_ready_email(job_card):
+    frappe.enqueue(
+        "quickfix.tasks.send_job_ready_email",
+        job_card=job_card,
+        queue="short"
+    )
+
+    return "Email job queued"

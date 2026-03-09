@@ -181,3 +181,16 @@ def mark_as_delivered(job_card: str):
         },
         update_modified=True,
     )
+
+
+def before_print(self, print_settings=None):
+    self.print_summary = f"{self.customer_name} - {self.device_brand} {self.device_model}"
+
+
+def on_submit(self):
+
+    frappe.enqueue(
+        "quickfix.tasks.send_job_ready_email",
+        job_card=self.name,
+        queue="short"
+    )

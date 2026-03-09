@@ -375,3 +375,252 @@ With index:
 Adding search_index: 1 to a field in DocType JSON
 tells Frappe to create a MySQL index on that column.
 Run bench migrate after adding it to create the index.
+
+
+# I4 - Prepared Report 
+
+when you would use a Prepared Report vs a
+real-time Script Report?
+
+A Script Report runs immediately when the user clicks "Run". The query executes in real time and returns results instantly. This is suitable for small or medium datasets where queries are fast.
+
+A Prepared Report is used when the dataset is very large or the query is expensive. Instead of running immediately, the report is executed in a background worker using the job queue system. The result is computed and stored, and the user can download the prepared output later.
+
+Prepared Reports improve system performance because they prevent long-running queries from blocking the user interface.
+
+When to Use Prepared Reports
+
+Prepared Reports should be used when:
+
+• The report processes large datasets
+• The query takes several seconds or minutes
+• Many users may run the report simultaneously
+• The report does heavy aggregation or calculations
+
+
+Staleness Tradeoff
+
+Prepared Reports introduce a data freshness tradeoff.
+
+Because the report result is pre-computed and cached, the data may become stale if the underlying records change.
+
+Example:
+
+9:00 AM → Prepared report generated
+9:05 AM → New Job Card added
+9:10 AM → User downloads report
+
+The report will not include the new Job Card, because the result was generated earlier.
+
+Caching Risk
+
+If the underlying data changes between report preparations, the user will see old cached results instead of real-time data.
+
+This means:
+• Recently updated Job Cards may not appear
+• Status changes may not be reflected
+• Counts may be outdated
+
+To reduce this issue, the report must be re-run periodically or manually refreshed.
+
+
+->When is Report Builder appropriate?
+Report Builder is suitable for simple reports where users only need basic filtering, sorting, and viewing data from a single DocType without writing code.
+
+->When must you use Script Report?
+Script Reports are required when the report needs complex logic, SQL queries, joins between multiple DocTypes, or calculations that cannot be handled by Report Builder.
+
+->Scenario where using Report Builder in production would be a mistake
+Using Report Builder for a large or complex report, such as a Technician Performance report analyzing thousands of Job Cards, would be a mistake. It may cause slow queries and poor system performance, whereas a Script Report allows optimized queries and better control over the logic.
+
+
+
+
+
+## Multi-language Printing in Frappe
+
+Frappe supports multi-language printing using the `_()` translation function.
+
+All user-visible strings in the print format are wrapped with `{{ _("text") }}`. During rendering, Frappe replaces these strings with their translated versions based on the active language.
+
+
+
+# J1 - Jinja Print Format: Job Card Receipt
+### How Frappe Determines the Language
+
+1. Frappe first checks the **current user's language preference** in the User settings.
+2. If no language is set, it uses the **System Default Language** defined in System Settings.
+3. When a print format is rendered, Frappe searches its **translation dictionary** for matching translations.
+4. If a translation exists, it replaces the string automatically.
+5. If no translation is available, the original English string is displayed.
+
+This mechanism allows the same print format template to support multiple languages without changing the code.
+
+
+
+
+
+## Data Fetching Patterns in Frappe Print Formats
+
+### 1. Using `frappe.get_all()` inside Jinja Template
+
+In this pattern, database queries are written directly inside the Jinja template.
+
+Example:
+
+{% set jobs = frappe.get_all("Job Card",
+    filters={"customer_name": doc.customer_name},
+    fields=["name", "device_type"]
+) %}
+
+{% for job in jobs %}
+{{ job.name }} - {{ job.device_type }}
+{% endfor %}
+
+**Explanation:**  
+When the print format is rendered, the template executes `frappe.get_all()` and fetches data from the database.
+
+**Drawback:**  
+This mixes database logic with the presentation layer and may cause performance issues if many queries are executed.
+
+---
+
+### 2. Pre-computing Data in `before_print()`
+
+In this approach, data is fetched in the Python controller before the print format is rendered.
+
+Example:
+
+Python controller:
+
+def before_print(self, print_settings=None):
+    self.related_jobs = frappe.get_all(
+        "Job Card",
+        filters={"customer_name": self.customer_name},
+        fields=["name", "device_type"]
+    )
+
+Template usage:
+{% for job in doc.related_jobs %}
+{{ job.name }} - {{ job.device_type }}
+{% endfor %}
+
+**Explanation:**  
+The data is fetched in Python and attached to the document (`self`).  
+The template accesses it using `doc.related_jobs`.
+
+**Advantage:**  
+This keeps business logic in Python and makes the template cleaner and easier to maintain.
+
+### Conclusion
+Using `before_print()` to pre-compute data is the recommended approach because it separates business logic from the template.
+
+
+
+## Raw Printing vs HTML-PDF Rendering in Frappe
+
+### Raw Printing (ESC/POS)
+
+Raw printing sends printer commands directly to a thermal printer using the ESC/POS protocol.  
+Instead of rendering HTML, the system sends low-level commands such as text alignment, line breaks, and barcode instructions.
+
+Characteristics:
+- Used mainly for **thermal receipt printers**.
+- Very fast because it bypasses browser rendering.
+- Limited formatting capabilities.
+- Does not support HTML or CSS.
+
+Example commands include:
+- Text formatting
+- Line feeds
+- Barcode printing
+
+---
+
+# J2 - Raw Print vs HTML to PDF
+### HTML to PDF Printing (WeasyPrint)
+
+Frappe normally generates print formats using **HTML and CSS**, then converts them to PDF using **WeasyPrint**.
+
+Process:
+1. Jinja template generates HTML.
+2. CSS styles are applied.
+3. WeasyPrint converts the HTML into a PDF document.
+
+Advantages:
+- Rich layout support.
+- CSS styling.
+- Works with normal printers.
+
+Limitations:
+- Some browser CSS features are not supported.
+
+
+### CSS Properties That Work in Browsers but Fail in WeasyPrint
+
+Some modern CSS features supported in browsers may not work correctly in WeasyPrint. Examples include:
+
+- `position: sticky`
+- `flexbox gap`
+- `backdrop-filter`
+
+Because of this, print formats should use simpler CSS layouts such as tables or basic block elements.
+
+
+
+## Using format_value() for Numeric Fields
+
+In Frappe print formats, numeric fields such as Currency should be displayed using the `format_value()` function.
+
+Example without formatting:
+{{ doc.final_amount }}
+
+Output:
+1000.0
+
+This output does not include the currency symbol and may not follow the correct decimal formatting.
+
+Example using format_value():
+{{ frappe.format_value(doc.final_amount, {"fieldtype":"Currency"}) }}
+
+Output:
+₹ 1,000.00
+
+Using `format_value()` ensures that numeric values are displayed correctly according to the field type, including the currency symbol, decimal precision, and system locale settings.
+
+Therefore, all numeric fields in the template should use `format_value()` for proper formatting.
+
+
+
+# K1 - Background Jobs: Queues, Timeouts, Progress
+## Background Job Queues in Frappe
+
+Frappe uses background workers to process tasks asynchronously using `frappe.enqueue()`.  
+Jobs are placed into different queues depending on how long they take to execute.
+
+### Default Queue
+The **default** queue is used for normal background tasks that are not extremely quick or very heavy.
+
+Examples:
+- Updating records
+- Processing moderate data tasks
+- Sending notifications
+
+### Short Queue
+The **short** queue is used for quick tasks that should execute immediately and should not wait behind heavy jobs.
+
+Examples:
+- Sending emails
+- Small background updates
+- Quick notifications
+
+### Long Queue
+The **long** queue is used for time-consuming or resource-intensive tasks.
+
+Examples:
+- Generating large reports
+- Data imports
+- Bulk data processing
+
+### Summary
+Using different queues ensures that small tasks are not delayed by long-running jobs and helps maintain better system performance.
