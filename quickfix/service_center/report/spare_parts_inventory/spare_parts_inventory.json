@@ -1,0 +1,12 @@
+{
+    "add_total_row": 0,
+    "columns": [],
+    "disabled": 0,
+    "doctype": "Report",
+    "filters": [],
+    "is_standard": "Yes",
+    "name": "Spare Parts Inventory",
+    "ref_doctype": "Spare Part",
+    "report_name": "Spare Parts Inventory",
+    "report_type": "Script Report"
+}

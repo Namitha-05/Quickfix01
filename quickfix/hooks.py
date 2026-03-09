@@ -371,3 +371,18 @@ fixtures = [
 doctype_list_js = {
     "Job Card": "job_card_list.js"
 }
+
+
+jinja = {
+    "methods": [
+        "quickfix.utils.get_shop_name",
+        "quickfix.utils.get_job_card_qr"
+    ]
+}
+
+
+scheduler_events = {
+    "daily": [
+        "quickfix.tasks.check_low_stock"
+    ]
+}

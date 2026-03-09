@@ -10,7 +10,6 @@ def execute(filters=None):
 
 
 def get_columns(filters):
-
     # Base columns
     cols = [
         {
@@ -66,7 +65,6 @@ def get_columns(filters):
 
 
 def get_data(filters):
-
     conditions = ""
     values = {}
 
