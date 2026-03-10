@@ -21,7 +21,6 @@ frappe.ui.form.on("Job Card", {
     },
     
     refresh: function(frm) {
-
         if (frm.doc.status === "Awaiting Customer Approval") {
             frm.dashboard.add_indicator("Awaiting Customer Approval", "orange");
         }
@@ -156,7 +155,7 @@ frappe.ui.form.on("Job Card", {
     },
     
     refresh: function(frm) {
-    // SAME customization as Client Script above
+    // Same customization as client script above
     // but this time shipped as part of the app file
     if (!frappe.user.has_role("QF Manager")) {
         frm.set_df_property("customer_phone", "hidden", 1);
@@ -177,7 +176,7 @@ frappe.ui.form.on("Job Card", {
                     let tech_spec = r.message.specialization;
                     if (tech_spec !== frm.doc.device_type) {
                         frappe.msgprint(
-                            " Technician specialization does not match device type."
+                            "Technician specialization does not match device type"
                         );
                     }
 
@@ -186,8 +185,8 @@ frappe.ui.form.on("Job Card", {
         });
 
     },
-
 });
+
 frappe.ui.form.on("Part Usage Entry", {
     quantity: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];

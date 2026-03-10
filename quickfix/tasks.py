@@ -27,7 +27,6 @@ def check_low_stock():
     }).insert(ignore_permissions=True)
 
     frappe.db.commit()
-
     print("Job completed")
 
 
@@ -35,6 +34,5 @@ def check_low_stock():
 
 def failing_job():
     print("Starting failing job")
-
     # Force an error
     raise Exception("Intentional failure for testing background job handling")
