@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "hash",
  "creation": "2026-03-01 21:48:36.632319",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -15,11 +16,15 @@
   {
    "fieldname": "doctype_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Doctype Name"
   },
   {
    "fieldname": "document_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Document Name"
   },
   {
@@ -42,10 +47,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-04 10:40:22.365513",
+ "modified": "2026-03-11 11:17:39.437135",
  "modified_by": "Administrator",
  "module": "Service center",
  "name": "Audit Log",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

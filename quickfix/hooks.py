@@ -383,6 +383,11 @@ jinja = {
 
 scheduler_events = {
     "daily": [
-        "quickfix.tasks.check_low_stock"
-    ]
+        "quickfix.api.check_low_stock"
+    ],
+    "cron": {
+        "0 2 1 * *": [
+            "quickfix.api.generate_monthly_revenue_report"
+        ]
+    }
 }
