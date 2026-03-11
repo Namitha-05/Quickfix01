@@ -183,6 +183,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Status",
    "options": "Draft\nPending Diagnosis\nAwaiting Customer Approval\nIn Repair\nReady for Delivery\nCompleted\nDelivered\nCancelled"
   },
@@ -202,7 +203,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-05 18:32:32.632217",
+ "modified": "2026-03-10 17:22:55.346649",
  "modified_by": "Administrator",
  "module": "Service center",
  "name": "Job Card",

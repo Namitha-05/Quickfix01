@@ -624,3 +624,177 @@ Examples:
 
 ### Summary
 Using different queues ensures that small tasks are not delayed by long-running jobs and helps maintain better system performance.
+
+# K2 - Scheduler Events & Cron
+->Disabling Scheduler for a Specific Site
+
+-The scheduler for a specific site can be disabled using the following command:
+
+bench --site <site-name> set-config pause_scheduler 1
+
+-This command updates the site configuration and prevents the scheduler from running background jobs for that site.
+
+To enable the scheduler again:
+
+bench --site <site-name> set-config pause_scheduler 0
+Why disable it on a development site?
+
+On a development site, developers may disable the scheduler to prevent automatic background jobs such as emails, reports, or scheduled tasks from running. This helps avoid unnecessary operations and allows developers to manually test and debug scheduled jobs.
+
+What Happens if the Worker is Down?
+
+When a scheduled job is triggered, it is placed in a Redis queue. If the worker process is down at that time, the job remains in the queue and is not executed immediately.
+
+Once the worker starts again, it processes the pending jobs in the queue, and the queued tasks will run normally.
+
+# L1 - REST Resource API & Custom API:
+
+1. List Job Cards
+This request retrieves the list of available Job Card documents.
+
+Request
+GET /api/resource/Job Card
+
+Description
+Returns a list of Job Card records stored in the system.
+
+Sample Response
+{
+ "data": [
+  {
+   "name": "JC-0001"
+  },
+  {
+   "name": "JC-0002"
+  }
+ ]
+}
+
+2. Retrieve a Single Job Card
+
+This request fetches the details of a specific Job Card using its document name.
+
+Request
+GET /api/resource/Job Card/JC-0001
+
+Description
+Returns all fields related to the specified Job Card.
+
+Sample Response
+{
+ "data": {
+  "name": "JC-0001",
+  "customer": "Rahul",
+  "status": "Open"
+ }
+}
+3. Create a Spare Part
+
+This request creates a new record in the Spare Part DocType.
+
+Request
+POST /api/resource/Spare Part
+
+Request Body
+{
+ "part_name": "Battery",
+ "price": 1500
+}
+
+Description
+Creates a new Spare Part entry with the provided details.
+
+Sample Response
+{
+ "data": {
+  "name": "PART-0001",
+  "part_name": "Battery",
+  "price": 1500
+ }
+}
+
+4. Update a Spare Part:
+This request updates an existing Spare Part record.
+
+Request
+PUT /api/resource/Spare Part/PART-0001
+
+Request Body
+{
+ "price": 1800
+}
+
+Description
+Updates the specified field in the Spare Part record.
+
+Sample Response
+{
+ "data": {
+  "name": "PART-0001",
+  "price": 1800
+ }
+}
+
+5. Delete a Spare Part
+This request deletes a Spare Part record from the system.
+
+Request
+DELETE /api/resource/Spare Part/PART-0001
+
+Description
+Removes the specified Spare Part document from the database.
+
+Sample Response
+{
+ "message": "ok"
+}
+
+Summary
+The Resource API in Frappe provides a simple way to perform CRUD operations on DocTypes using standard HTTP methods.
+
+Method	Purpose:
+GET	--Retrieve records
+POST--create new record
+PUT	--Update existing record
+DELETE	--Remove record
+
+Using these endpoints, developers can easily integrate Frappe with external systems or build custom applications that interact with the Frappe backend.
+
+
+# Task B - Token Authentication
+Difference Between Session Authentication and Token Authentication
+
+Session Cookie Authentication uses a session ID (sid) that is created when a user logs into Frappe through the browser. The browser automatically sends this cookie with each request, so the server can identify the logged-in user.
+
+Token Authentication uses an API key and API secret instead of a login session. These credentials are sent in the request header as:
+
+Authorization: token api_key:api_secret
+Appropriate Usage
+
+Session Authentication: is best suited for browser-based applications, because the browser manages the session cookie automatically after login.
+
+Token Authentication : is best suited for server-to-server communication, external integrations, or mobile apps, where maintaining a browser session is not practical.
+
+
+
+
+# Task A - N+1 query detection and fix:
+Problem: frappe.get_doc() is called inside the loop causing N+1 queries.
+
+->Fixed Code:
+
+job_cards = frappe.get_all("Job Card", fields=["name", "assigned_technician"])
+
+tech_ids = [jc.assigned_technician for jc in job_cards]
+
+technicians = frappe.get_all(
+    "Technician",
+    filters={"name": ["in", tech_ids]},
+    fields=["name", "technician_name", "phone"]
+)
+
+tech_map = {t.name: t for t in technicians}
+for jc in job_cards:
+    tech = tech_map.get(jc.assigned_technician)
+    if tech:
+        print(tech.technician_name, tech.phone)
