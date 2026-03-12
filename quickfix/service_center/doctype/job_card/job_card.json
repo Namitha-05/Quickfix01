@@ -107,7 +107,8 @@
    "fieldname": "assigned_technician",
    "fieldtype": "Link",
    "label": "Assigned Technician",
-   "options": "Technician"
+   "options": "Technician",
+   "search_index": 1
   },
   {
    "depends_on": "doc.assigned_technician;",
@@ -185,7 +186,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Draft\nPending Diagnosis\nAwaiting Customer Approval\nIn Repair\nReady for Delivery\nCompleted\nDelivered\nCancelled"
+   "options": "Draft\nPending Diagnosis\nAwaiting Customer Approval\nIn Repair\nReady for Delivery\nCompleted\nDelivered\nCancelled",
+   "search_index": 1
   },
   {
    "fieldname": "parts_used_section",
@@ -203,7 +205,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-10 17:22:55.346649",
+ "modified": "2026-03-11 16:11:08.265393",
  "modified_by": "Administrator",
  "module": "Service center",
  "name": "Job Card",

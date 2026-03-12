@@ -194,3 +194,14 @@ def on_submit(self):
         job_card=self.name,
         queue="short"
     )
+
+
+def on_update(self):
+    # Every time a Job Card is saved
+    # delete the chart cache
+    # so dashboard shows fresh data
+
+    cache_key = "quickfix:status_chart_data"
+    # Delete old cached data
+    frappe.cache.delete_value(cache_key)
+    print(f"Cache invalidated for {cache_key}")

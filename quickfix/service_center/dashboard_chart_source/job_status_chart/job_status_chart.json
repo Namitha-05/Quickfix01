@@ -1,0 +1,13 @@
+{
+ "creation": "2026-03-12 13:31:50.425622",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart Source",
+ "idx": 0,
+ "modified": "2026-03-12 13:31:50.425622",
+ "modified_by": "Administrator",
+ "module": "Service center",
+ "name": "Job Status Chart",
+ "owner": "Administrator",
+ "source_name": "Job Status Chart",
+ "timeseries": 0
+}

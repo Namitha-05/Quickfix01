@@ -106,9 +106,55 @@ def mark_ready_for_delivery(job_card):
 
 
     
+# @frappe.whitelist()
+# def get_status_chart_data():
+    
+#     result = frappe.db.sql("""
+#         SELECT
+#             status,
+#             COUNT(name) as count
+#         FROM `tabJob Card`
+#         WHERE
+#             status IS NOT NULL
+#             AND status != ''
+#         GROUP BY status
+#         ORDER BY count DESC
+#     """, as_dict=True)
+
+#     labels = [r.status for r in result]
+#     values = [r.count  for r in result]
+
+#     return {
+#         "labels": labels,
+#         "datasets": [
+#             {
+#                 "name"  : "Job Count",
+#                 "values": values
+#             }
+#         ]
+#     }
+
+
 @frappe.whitelist()
 def get_status_chart_data():
-    
+
+    # Step 1: Define cache key
+    # This is the name/label for our cached data
+    cache_key = "quickfix:status_chart_data"
+
+    # Step 2: Check if data already in cache
+    cached_data = frappe.cache.get_value(cache_key)
+
+    if cached_data:
+        # Data found in cache
+        # Return immediately without hitting database
+        print("Returning from CACHE")
+        return cached_data
+
+    # Step 3: Cache miss - data not in cache
+    # Must run SQL query
+    print("Cache MISS - running SQL query")
+
     result = frappe.db.sql("""
         SELECT
             status,
@@ -123,8 +169,8 @@ def get_status_chart_data():
 
     labels = [r.status for r in result]
     values = [r.count  for r in result]
-
-    return {
+     
+        chart_data = {
         "labels": labels,
         "datasets": [
             {
@@ -133,6 +179,17 @@ def get_status_chart_data():
             }
         ]
     }
+
+    # Step 4: Save result in cache for 300 seconds
+    frappe.cache.set_value(
+        cache_key,        # name of cache item
+        chart_data,       # data to store
+        expires_in_sec=300  # auto delete after 300s
+    )
+    print("Data saved to cache for 300 seconds")
+
+    return chart_data
+
 
 
 
