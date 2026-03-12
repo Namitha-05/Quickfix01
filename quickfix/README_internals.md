@@ -798,3 +798,187 @@ for jc in job_cards:
     tech = tech_map.get(jc.assigned_technician)
     if tech:
         print(tech.technician_name, tech.phone)
+
+
+
+# Task C - Indexing
+
+# K3 - Performance Engineering
+Search indexes should not be added to every field because they increase database overhead. Each index must be updated during INSERT, UPDATE, and DELETE operations, which slows down write performance and increases storage usage. Therefore, indexes should only be added to frequently searched or filtered fields to balance performance.
+
+
+# M1 - Server Script DocType 
+
+Server Script Sandbox Analysis
+1. Python functions/modules blocked in Server Script sandbox
+
+Server Scripts run inside a sandbox environment in Frappe.
+This environment restricts access to unsafe Python modules.
+
+Examples of blocked modules/functions:
+
+os
+subprocess
+socket
+requests
+open() (file operations)
+
+These are blocked to protect the server from malicious code execution.
+
+2. Three things we cannot do in Server Scripts
+Things allowed in App Code but not in Server Scripts:
+
+Access the file system (create/read/write files).
+Run system commands using os or subprocess.
+Use external Python libraries or network requests.
+Server Scripts only allow safe and limited operations.
+
+3. When Server Scripts are acceptable:
+Server Scripts are suitable for small business logic changes.
+
+Examples:
+Automatically set a field value when a document is saved.
+Add simple validation (e.g., prevent saving if amount = 0).
+
+4. When App Code should be used instead:
+App code should be used for complex or scalable logic.
+
+Examples:
+Integrating with external APIs (SMS, payment gateways).
+Creating background jobs, reports, or complex business workflows.
+
+5. Governance and Maintainability Risk:
+Server Scripts are stored in the database instead of version-controlled code.
+
+This can cause issues such as:
+Changes are not tracked in Git.
+Harder to review and maintain.
+Hidden logic may affect system behavior.
+
+For long-term projects, important logic should be implemented in app code instead of Server Scripts.
+
+
+## M2 - Task A: What Frappe Caches in Redis
+
+### What is Redis Cache?
+Redis is a fast in-memory storage.
+Frappe stores frequently needed data in Redis
+so it does not hit the database every time.
+This makes page loads faster.
+
+
+### Explored in Bench Console
+#### frappe.cache.get_value("bootinfo")
+Returns the boot data package sent to browser
+when a user first logs in.
+If empty returns None - means cache not built yet.
+
+#### frappe.cache.get_keys("")
+Shows all keys currently stored in Redis.
+Found keys like:
+- bootinfo||Administrator
+- lang:en
+- doctype_meta:Job Card
+- user_permissions:Administrator
+
+#### frappe.clear_cache()
+Clears everything stored in Redis.
+After running - browser reloads slower
+because server rebuilds all data
+from database again.
+
+
+### 5 Things Frappe Caches in Redis
+#### 1. bootinfo
+What it is:
+Data package sent to browser when user logs in.
+
+Contains:
+- Logged in user name and email
+- User roles and permissions
+- Enabled modules and apps
+- Language and timezone settings
+- Custom boot values (quickfix_shop_name,
+  quickfix_manager_email)
+
+
+#### 2. DocType Metadata / Meta
+What it is:
+Field definitions, form layout, permissions
+for every DocType.
+
+Contains:
+- All field names and types
+- Mandatory fields
+- Depends on conditions
+- Permission rules
+
+
+#### 3. Website Context
+What it is:
+Data for portal and website pages.
+
+Contains:
+- Web page content
+- Portal menu items
+- Website settings
+- SEO fields like title and description
+
+
+#### 4. Translations
+What it is:
+All translated strings for each language.
+
+Cache key: lang:en (for English)
+           lang:ta (for Tamil)
+
+Contains:
+- All _("string") translations
+- All __("string") JS translations
+- Language specific date formats
+
+
+#### 5. User Permissions
+What it is:
+Which records each user is allowed to access.
+
+Contains:
+- Permission query conditions
+- User roles
+- Document level permissions
+- Default values per user
+
+
+
+# M2 - Caching, Redis & Cache Invalidation
+
+## Cache Issues After Changes (Frappe)
+1. Browser Shows Old JS After Changing JavaScript
+Problem:
+After modifying a JavaScript file, the browser still loads the old version of the JS.
+
+Solution:
+Run the following command to clear and rebuild assets:
+
+bench build --app quickfix
+What this Command Does?
+
+Rebuilds the JavaScript and CSS assets of the app.
+Clears the asset cache.
+
+Ensures the browser loads the latest JS changes.
+You may also refresh the browser using Ctrl + Shift + R to force reload.
+
+2. Old Field Labels After DocType Changes
+Problem
+
+After modifying a DocType (for example changing field labels), users still see the old labels.
+Solution
+
+Run:
+bench clear-cache
+
+What this Command Does
+Clears the DocType metadata cache.
+Forces Frappe to reload the latest DocType configuration from the database.
+
