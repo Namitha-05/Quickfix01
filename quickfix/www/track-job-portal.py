@@ -1,29 +1,27 @@
 import frappe
 
-# get_context() is automatically called by Frappe
-# when someone opens /track-job
-# context = dictionary used to send data to HTML
-
 def get_context(context):
 
-    # Get job_id from URL
-    # Example:
-    # /track-job?job_id=JC-0001
+    # Get job id from URL
     job_id = frappe.form_dict.get("job_id")
 
-    # Always send shop name manually to HTML
-    # (Even though we can use Jinja method,
-    #  this shows how context works)
-    context.shop = frappe.db.get_single_value(
-        "Quickfix Settings",
-        "shop_name"
-    )
+    # Send empty values initially
+    context.job = None
+    context.error = None
 
-    # If user entered a job_id
+    # If user entered job id
     if job_id:
         try:
             job = frappe.get_doc("Job Card", job_id)
+
+            # Send job data to HTML
             context.job = job
 
         except frappe.DoesNotExistError:
+
+            # If job id is wrong
             context.error = "Invalid Job ID"
+
+    context.title = "Track Job Status"
+    context.description = "Check the repair status of your device online"
+    context.og_title = "QuickFix Job Tracking"

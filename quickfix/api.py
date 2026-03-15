@@ -426,10 +426,6 @@ def get_job_by_phone():
 
 
 
-
-
-
-
 # Create logger for quickfix app
 logger = frappe.logger("quickfix")
 @frappe.whitelist()

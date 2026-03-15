@@ -1209,3 +1209,28 @@ common_site_config.json is shared by all sites in a bench instance. If secrets a
 ## Risk of Committing site_config.json to Git
 
 The site_config.json file contains sensitive information such as database passwords and API keys. If this file is committed to a Git repository, these secrets become visible to others and may be exposed publicly. Even if the file is later removed, it remains in the Git history. To prevent this, site_config.json should always be added to .gitignore.
+
+
+
+## Debugging Email Failure
+
+If an email fails to send in Frappe, we can check three places:
+
+Email Queue – Go to Email -> Email Queue and check the email status (Sent, Not Sent, or Error). The error message here often shows why the email failed.
+
+SMTP / Email Account Settings – Verify the SMTP server, port, username, password, and TLS/SSL settings in the Email Account. Wrong configuration can prevent emails from sending.
+
+Error Log – Go to Setup -> Error Log to see system errors related to email sending, such as authentication or connection issues.
+
+
+
+
+## Portal Page and SEO Implementation
+
+A public portal page /track-job was created in the www folder to allow customers to track their repair status. Pages inside the www directory are automatically public in Frappe, so the page can be accessed without login. To maintain security, the page only displays non-sensitive information such as Job ID, Customer Name, and Status.
+
+The page uses the get_context() function in track-job.py to fetch Job Card details and pass them to the HTML template for display.
+
+Basic SEO settings were added by setting context.title, context.description, and context.og_title in get_context() so that the page has a proper title and description for browsers and search engines.
+
+The page was also added to the website navigation menu by configuring portal_menu_items in hooks.py, allowing users to easily access the Track Job page from the website menu.

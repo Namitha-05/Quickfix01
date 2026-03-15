@@ -100,12 +100,13 @@ class JobCard(Document):
                 "stock_qty",
                 new_stock
             )
+
         invoice = frappe.get_doc({
             "doctype": "Service Invoice",
             "customer_name": self.customer_name,
             "job_card": self.name,
             "total_amount": self.final_amount,
-            "labour_charge":self.labour_charge,
+            "labour_charge": self.labour_charge,
         })
         invoice.insert(ignore_permissions=True)
 
@@ -118,6 +119,20 @@ class JobCard(Document):
         frappe.enqueue(
             "quickfix.quickfix.doctype.job_card.job_card.send_job_ready_email",
             job_card=self.name
+        )
+
+        attachments = frappe.attach_print(
+            "Job Card",
+            self.name,
+            file_name="Job Card",
+            print_format=None
+        )
+
+        frappe.sendmail(
+            recipients=[self.owner],
+            subject="Job Card Submitted",
+            message="Your Job Card has been submitted successfully.",
+            attachments=[attachments]
         )
 
     def on_cancel(self):
@@ -164,55 +179,58 @@ class JobCard(Document):
             self.db_set("completed_on", frappe.utils.now())
 
 
-@frappe.whitelist()
-def mark_as_delivered(job_card: str):
-    doc = frappe.get_doc("Job Card", job_card)
-    doc.check_permission("write")
+    @frappe.whitelist()
+    def mark_as_delivered(job_card: str):
+        doc = frappe.get_doc("Job Card", job_card)
+        doc.check_permission("write")
 
-    if doc.docstatus != 1:
-        frappe.throw("Only submitted Job Cards can be marked as Delivered.")
+        if doc.docstatus != 1:
+            frappe.throw("Only submitted Job Cards can be marked as Delivered.")
 
-    if doc.status == "Delivered":
-        return
+        if doc.status == "Delivered":
+            return
 
-    if doc.status != "Ready for Delivery":
-        frappe.throw("Only Job Cards in 'Ready for Delivery' can be marked as Delivered.")
+        if doc.status != "Ready for Delivery":
+            frappe.throw("Only Job Cards in 'Ready for Delivery' can be marked as Delivered.")
 
-    frappe.db.set_value(
-        "Job Card",
-        doc.name,
-        {
-            "status": "Delivered",
-            "delivery_date": frappe.utils.nowdate(),
-        },
-        update_modified=True,
-    )
-
-
-def before_print(self, print_settings=None):
-    self.print_summary = f"{self.customer_name} - {self.device_brand} {self.device_model}"
+        frappe.db.set_value(
+            "Job Card",
+            doc.name,
+            {
+                "status": "Delivered",
+                "delivery_date": frappe.utils.nowdate(),
+            },
+            update_modified=True,
+        )
 
 
-def on_submit(self):
-
-    frappe.enqueue(
-        "quickfix.tasks.send_job_ready_email",
-        job_card=self.name,
-        queue="short"
-    )
+    def before_print(self, print_settings=None):
+        self.print_summary = f"{self.customer_name} - {self.device_brand} {self.device_model}"
 
 
-def on_update(self):
-    # Every time a Job Card is saved
-    # delete the chart cache
-    # so dashboard shows fresh data
+    # def on_submit(self):
 
-    cache_key = "quickfix:status_chart_data"
-    # Delete old cached data
-    frappe.cache.delete_value(cache_key)
-    print(f"Cache invalidated for {cache_key}")
+    #     frappe.enqueue(
+    #         "quickfix.tasks.send_job_ready_email",
+    #         job_card=self.name,
+    #         queue="short"
+    #     )
 
 
+    def on_update(self):
+        # Every time a Job Card is saved
+        # delete the chart cache
+        # so dashboard shows fresh data
 
-def failing_background_job():
-    raise Exception("Test background job failure for M3")
+        cache_key = "quickfix:status_chart_data"
+        # Delete old cached data
+        frappe.cache.delete_value(cache_key)
+        print(f"Cache invalidated for {cache_key}")
+
+
+
+    def failing_background_job():
+        raise Exception("Test background job failure for M3")
+
+
+
