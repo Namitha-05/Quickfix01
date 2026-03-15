@@ -982,3 +982,230 @@ What this Command Does
 Clears the DocType metadata cache.
 Forces Frappe to reload the latest DocType configuration from the database.
 
+
+# M3 - Logging, Error Handling & Observability :
+
+
+Error log:
+Error log record Fields-Title,status,Reference Doctype,Refernce Name,ID.
+
+
+RQ job:
+Failed background jobs can be viewed in System --> RQ Job.
+If a job fails, its status appears as Failed. In the RQ dashboard, the job can be requeued, which moves it back to the queue so the worker can retry executing it.
+
+
+
+
+# Task C - Production debugging pattern:
+
+Production Debugging Pattern:
+When a bug occurs only in production and cannot be reproduced in development, debugging can be done using Error Logs, Audit Logs, and structured logging without enabling developer mode.
+
+Check Error Log:
+Navigate to Setup -> Error Log to identify the exception, traceback, method, and timestamp of the failure.
+
+Analyze the Traceback:
+The traceback helps determine which function or line of code caused the issue.
+
+Review Audit Logs:
+Audit Logs help trace user actions and document changes that may have triggered the bug.
+
+Use frappe.logger for structured logging:
+Add logging statements using frappe.logger() to track execution flow and identify where the process fails.
+
+Example:
+logger = frappe.logger("quickfix")
+logger.info("Webhook started")
+logger.warning("Missing configuration")
+logger.error("Webhook request failed")
+
+Analyze log files:
+Check the log files in sites/site-name/logs/ to understand the sequence of events leading to the error. This approach allows safe debugging in production without enabling developer mode. 
+
+
+
+
+# N1 - Security Audit :
+
+ ## Task A - SQL injection prevention (complete audit):
+
+ ### SQL Injection Prevention – Security Audit
+## 1. Finding where user input touches database queries
+
+In this project, user input is received through API methods using function parameters and request data such as frappe.form_dict.
+
+Example:
+job_card_name = frappe.form_dict.get("job_card_name")
+
+These inputs are then used in database operations like:
+frappe.get_doc()
+frappe.db.exists()
+frappe.get_list()
+
+Example from the code:
+doc = frappe.get_doc("Job Card", job_card)
+
+Here, job_card is user input and it is used to fetch data from the database.
+However, these methods are part of Frappe ORM, which internally uses safe queries and prevents SQL injection.
+
+In the codebase, there are also direct SQL queries like:
+frappe.db.sql("""
+SELECT status, COUNT(name)
+FROM `tabJob Card`
+GROUP BY status
+""")
+
+These queries do not use user input, so they are safe.
+
+## 2. Unsafe vs Safe Query Examples
+
+Even though the project does not currently use unsafe SQL queries, the difference between unsafe and safe queries is shown below.
+
+->Pattern 1 – Single Condition Query
+-->Unsafe (f-string)
+
+name = frappe.form_dict.get("name")
+
+frappe.db.sql(f"""
+SELECT * FROM `tabJob Card`
+WHERE name = '{name}'
+""")
+
+This is unsafe because user input is directly inserted into the SQL query.
+
+-->Safe (Parameterized Query)
+
+frappe.db.sql("""
+SELECT * FROM `tabJob Card`
+WHERE name = %s
+""", (name,))
+
+Here %s is used as a placeholder and the value is passed separately.
+This prevents SQL injection.
+
+->Pattern 2 – Multiple Conditions
+-->Unsafe (f-string)
+
+customer = frappe.form_dict.get("customer")
+status = frappe.form_dict.get("status")
+
+frappe.db.sql(f"""
+SELECT name
+FROM `tabJob Card`
+WHERE customer = '{customer}'
+AND status = '{status}'
+""")
+
+User input is directly placed inside the query.
+
+-->Safe (Parameterized Query)
+
+frappe.db.sql("""
+SELECT name
+FROM `tabJob Card`
+WHERE customer = %s
+AND status = %s
+""", (customer, status))
+
+Here the database safely inserts the values using placeholders.
+
+## 3. Using frappe.db.escape()
+
+Frappe also provides a function called frappe.db.escape() which can escape user input.
+
+Example:
+safe_name = frappe.db.escape(name)
+
+This helps remove dangerous characters from the input.However, frappe.db.escape() is not preferred as much as parameterized queries. This is because escaping still mixes the user input with the SQL query string. If it is not used carefully everywhere, it may still lead to security issues.And the parameterized queries are preferred because they automatically separate SQL code from user data and provide better protection against SQL injection.
+
+
+# Task B - allow_guest risks:
+
+The /track-job endpoint allows guest users to check job status using a phone number.
+
+### If input validation is not implemented, the following attacks are possible:
+
+Data enumeration attack – An attacker can try many phone numbers to discover job details of different customers.
+
+SQL injection attack – If the phone input is used directly in a SQL query, malicious input could modify the query and expose sensitive data.
+
+API abuse / brute force – Since the endpoint allows guest access, attackers can send many requests to overload the server or collect customer data.
+
+### To reduce these risks:
+Phone input is sanitized to allow digits only and a maximum of 10 characters.
+
+The system checks that at least one job exists for the phone number before returning data.
+
+A rate limiter is added to restrict how many times the endpoint can be called.
+
+
+## Locations where ignore_permissions=True is used:
+
+1. custom_get_count() – Audit logging
+doc.insert(ignore_permissions=True)
+
+Justification:
+This is used to insert an Audit Log record whenever a count query is executed. The log entry is created by the system to record activity, so bypassing user permission checks is acceptable.
+
+
+2. mark_ready_for_delivery()
+doc.save(ignore_permissions=True)
+
+Justification:
+This function updates the job card status as part of an internal workflow. Since it is a system-controlled update rather than a direct user action, bypassing permission checks is acceptable.
+
+
+3. check_low_stock() – Scheduled job logging
+doc.insert(ignore_permissions=True)
+
+Justification:
+This function runs as a scheduled background job to check low stock conditions and log the execution. Because it is a system-initiated action and not triggered by a user, bypassing permission checks is acceptable.
+
+
+### Security Risk Analysis
+
+If a malicious developer or intern adds ignore_permissions=True inside a function that is exposed using:
+
+@frappe.whitelist(allow_guest=True)
+
+it would allow any unauthenticated user to perform database operations without permission checks.
+
+This could allow attackers to create, modify, or delete records without proper authorization, leading to serious data integrity and security issues.
+
+Therefore, ignore_permissions=True should never be used inside guest-accessible endpoints and must only be used in trusted backend system operations such as background jobs or internal logging.
+
+
+
+## Task D - Private vs public files:
+
+### When to Use Public Files vs Private Files
+
+Public Files:
+Public files are used when the file can be accessed by anyone without login or special permission. These files are suitable for content that is meant to be shared openly, such as website images, public documents, brochures, or other static assets.
+
+Private Files:
+Private files are used when the file contains sensitive or restricted information. These files require the user to be logged in and have the proper permissions to access them. Examples include internal company documents, job card attachments, customer data, and confidential reports.
+
+
+
+## Issues with Hardcoded API Keys
+
+Hardcoding API keys directly inside Python source code is insecure. If the code is shared or pushed to a repository, the API key becomes visible to anyone who has access to the code. This can allow attackers to misuse the API key to access services or perform unauthorized actions. It also makes it difficult to change the key because the source code must be modified and redeployed.
+
+## Reading Secrets from site_config.json
+
+In Frappe applications, sensitive values such as API keys should be stored in site_config.json and accessed using frappe.conf.get().
+
+### Example:
+api_key = frappe.conf.get("payment_api_key")
+
+This allows secrets to be managed outside the source code and keeps them secure.
+
+## Why Secrets Should Not Be in common_site_config.json
+
+common_site_config.json is shared by all sites in a bench instance. If secrets are stored there, every site will use the same key. This increases security risks because if one site is compromised, the secret could be exposed for all sites. Therefore, secrets should be stored in the specific site_config.json for each site.
+
+## Risk of Committing site_config.json to Git
+
+The site_config.json file contains sensitive information such as database passwords and API keys. If this file is committed to a Git repository, these secrets become visible to others and may be exposed publicly. Even if the file is later removed, it remains in the Git history. To prevent this, site_config.json should always be added to .gitignore.
