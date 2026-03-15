@@ -17,6 +17,12 @@ class JobCard(Document):
 
 
     def validate(self):
+        frappe.utils.logger.set_log_level("INFO")
+        logger = frappe.logger("quickfix")
+        logger.info("Webhook triggered")
+        logger.warning("Webhook URL not configured")
+        logger.error("Webhook request failed")
+
         if not self.device_model:
             frappe.msgprint("Controller: device model required")
 
@@ -32,7 +38,7 @@ class JobCard(Document):
                     f"Assigned Technician is required when status is '{self.status}'.",
                     title="Technician Missing"
                 )
-
+        
         parts_total = 0
 
         for row in self.parts_used:
@@ -205,3 +211,8 @@ def on_update(self):
     # Delete old cached data
     frappe.cache.delete_value(cache_key)
     print(f"Cache invalidated for {cache_key}")
+
+
+
+def failing_background_job():
+    raise Exception("Test background job failure for M3")
