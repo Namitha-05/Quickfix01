@@ -67,6 +67,35 @@ If we call frappe.get_doc("Job Card", name) without ignore_permissions and log i
 Frappe stops the request at the permission checking layer (before returning the document), so the user cannot access the data they are not allowed to see.
 
 
+
+# B2 - ORM Internals & Query Builder 
+## Part A – Table Naming
+
+1. Output of SHOW TABLES LIKE '%Job%'
+
+Running this command shows tables related to Job documents, such as:
+tabJob Card
+tabJob Card Item
+tabJob Card Time Log (or similar related tables)
+
+Explanation – tab Prefix
+In Frappe, every DocType table in the database starts with the prefix tab.
+For example, the DocType Job Card is stored in the table tabJob Card.
+This naming convention helps Frappe distinguish DocType tables from other system tables.
+
+2. Output of DESCRIBE tabJob Card
+
+The command shows all the columns stored in the tabJob Card table.
+Some column names that match fields in the DocType include:
+name
+job_card_name
+status
+employee
+posting_date
+These columns correspond to the fields defined in the Job Card DocType.
+
+
+
 # C1 -Child Table Internals 
 
 1.Frappe automatically sets parent, parenttype, parentfield, and idx when a child row is saved.
