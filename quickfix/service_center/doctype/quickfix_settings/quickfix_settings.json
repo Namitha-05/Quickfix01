@@ -9,7 +9,8 @@
   "manager_email",
   "default_labour_charge",
   "low_stock_alert_enabled",
-  "low_stock_alert_threshold"
+  "low_stock_alert_threshold",
+  "webhook_url"
  ],
  "fields": [
   {
@@ -40,13 +41,18 @@
    "fieldname": "low_stock_alert_threshold",
    "fieldtype": "Int",
    "label": "Low Stock Alert Threshold"
+  },
+  {
+   "fieldname": "webhook_url",
+   "fieldtype": "Data",
+   "label": "Webhook URL"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-03-02 15:20:45.499147",
+ "modified": "2026-03-16 13:21:43.763935",
  "modified_by": "Administrator",
  "module": "Service center",
  "name": "QuickFix Settings",

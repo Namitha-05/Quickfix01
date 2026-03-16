@@ -482,30 +482,99 @@ def error_background_job():
 
 
 
-import re
+# import re
+
+# @frappe.whitelist(allow_guest=True)
+# # @frappe.rate_limiter(limit=10, seconds=60)
+# def track_job(phone):
+
+#     # sanitize phone
+#     customer_phone = re.sub(r'\D', '', phone)
+
+#     if len(customer_phone) > 10:
+#         frappe.throw("Invalid phone number")
+
+#     # check job existence
+#     jobs = frappe.get_all(
+#         "Job Card",
+#         filters={"customer_phone": customer_phone},
+#         fields=["customer_name", "status"]
+#     )
+
+#     if not jobs:
+#         return {"message": "No jobs found for this phone"}
+
+#     return jobs
+
+def send_webhook(job_card_name):
+    import requests, json
+    settings = frappe.get_single("QuickFix Settings")
+    if not settings.webhook_url:
+        return
+    doc = frappe.get_doc("Job Card", job_card_name)
+    payload = {
+            "event": "job_submitted",
+            "job_card": doc.name,
+            "amount": doc.final_amount
+        }
+    try:
+        r = requests.post(settings.webhook_url, json=payload, timeout=5)
+        r.raise_for_status()
+    except Exception as e:
+        frappe.log_error(f"Webhook failed: {e}", "Webhook Error")
+
+
+
+import hmac
+import hashlib
+import json
+
 
 @frappe.whitelist(allow_guest=True)
-@frappe.rate_limiter(limit=10, seconds=60)
-def track_job(phone):
+def payment_webhook():
 
-    # sanitize phone
-    customer_phone = re.sub(r'\D', '', phone)
+    # 1. Read raw request body
+    payload = frappe.request.data
 
-    if len(customer_phone) > 10:
-        frappe.throw("Invalid phone number")
+    # 2. Validate HMAC signature
+    secret = frappe.conf.get("payment_webhook_secret", "")
+    signature = frappe.get_request_header("X-Signature")
 
-    # check job existence
-    jobs = frappe.get_all(
-        "Job Card",
-        filters={"customer_phone": customer_phone},
-        fields=["customer_name", "status"]
-    )
+    expected = hmac.new(
+        secret.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
 
-    if not jobs:
-        return {"message": "No jobs found for this phone"}
+    if not hmac.compare_digest(expected, signature or ""):
+        frappe.throw("Invalid signature", frappe.AuthenticationError)
 
-    return jobs
+    # 3. Parse payload
+    data = json.loads(payload)
 
+    # 4. Deduplication check
+    if frappe.db.exists(
+        "Audit Log",
+        {
+            "action": "payment_received",
+            "document_name": data["ref"]
+        }
+    ):
+        return {"status": "duplicate", "message": "Already processed"}
 
+    # 5. Update payment status (example)
+    if frappe.db.exists("Job Card", data["ref"]):
+        doc = frappe.get_doc("Job Card", data["ref"])
+        doc.payment_status = "Paid"
+        doc.save(ignore_permissions=True)
 
+    # 6. Log event
+    frappe.get_doc({
+        "doctype": "Audit Log",
+        "action": "payment_received",
+        "document_name": data["ref"]
+    }).insert(ignore_permissions=True)
 
+    frappe.db.commit()
+
+    return {"status": "ok"}

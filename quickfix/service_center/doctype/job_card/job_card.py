@@ -135,6 +135,13 @@ class JobCard(Document):
             attachments=[attachments]
         )
 
+        frappe.enqueue(
+            "quickfix.api.send_webhook",
+            job_card_name=self.name,
+            queue="short",
+            timeout=300
+        )
+
     def on_cancel(self):
         self.db_set("status", "Cancelled")
         if self.parts_used:

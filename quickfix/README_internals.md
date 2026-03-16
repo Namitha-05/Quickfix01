@@ -36,7 +36,7 @@ Frappe already has built-in Python code to:
 -Return the JSON
 
 -----> When a browser hits /track-job, Frappe looks in the app’s www/ folder and serves track-job.py or track-job.html.  
-It uses the get_context function (if .py) or the HTML directly, because URLs not starting with /api/ are treated as website pages.
+It uses the get_context() function (if .py) or the HTML directly, because URLs not starting with /api/ are treated as website pages.
 
 
 2) Session & CSRF
@@ -165,6 +165,8 @@ override_doctype_class can break things if forget to call super().
 
 
 
+
+
 # F1 - doc_events: Wildcard, Multiple Handlers, Order
 
 Handler order in Frappe:
@@ -192,6 +194,8 @@ Execution order is:
 
 ->Wildcard runs for all DocTypes, so it is executed after
 the specific handler.
+
+
 
 
 # F3 – Asset, Jinja & Website Hooks
@@ -246,6 +250,8 @@ Does not automatically provide doc. Data must be passed manually using get_conte
 
 
 
+
+
 # F4 - override_whitelisted_methods Hook:
 
 -->Difference Between override_whitelisted_methods and Monkey Patching:
@@ -270,6 +276,9 @@ If the number or names of parameters differs, the Python raises a TypeError when
 Therefore, the override function must accept the same parameters as the original method to avoid runtime errors.
 
 
+
+
+
 # F5 - Fixtures & Property Setters in Install 
 
 ->what happens if your Custom Field has the same
@@ -291,6 +300,8 @@ must they be separate entries in patches.txt and never merged?
 
 Patches run one by one in the order they are written in patches.txt.If Patch 1 creates a Custom Field and Patch 2 tries to use that field, Patch 1 must run first.That is why, they should be written as separate entries.
 If merged together, the second logic might run before the field is properly created, which can cause errors.Keeping patches separate ensures everything runs safely and in the correct order.
+
+
 
 
 
@@ -1263,3 +1274,9 @@ The page uses the get_context() function in track-job.py to fetch Job Card detai
 Basic SEO settings were added by setting context.title, context.description, and context.og_title in get_context() so that the page has a proper title and description for browsers and search engines.
 
 The page was also added to the website navigation menu by configuring portal_menu_items in hooks.py, allowing users to easily access the Track Job page from the website menu.
+
+
+
+
+QuickFix App Flow Link:
+https://drive.google.com/file/d/1zHlbU6BvQTQmMryM8wSytn-CFc99APOC/view?usp=sharing
