@@ -60,9 +60,7 @@ def format_job_id(value):
 def get_job_card_qr(name):
 
     url = frappe.utils.get_url(f"/app/job-card/{name}")
-
     qr = qrcode.make(url)
-
     buffer = io.BytesIO()
     qr.save(buffer, format="PNG")
 
